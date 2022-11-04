@@ -1,0 +1,71 @@
+{
+  "env": {
+    "es6": true,
+    "node": true
+  },
+  "extends": ["airbnb-base", "prettier/@typescript-eslint"],
+  "globals": {
+    "Atomics": "readonly",
+    "SharedArrayBuffer": "readonly"
+  },
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": 11,
+    "sourceType": "module"
+  },
+  "plugins": ["@typescript-eslint"],
+  "ignorePatterns": ["node_modules", "build", "dist", "public"],
+  "settings": {
+    "import/parsers": {
+      "@typescript-eslint/parser": [".ts", ".tsx"]
+    },
+    "import/resolver": {
+      "typescript": {
+        "alwaysTryTypes": true,
+        "paths": "./tsconfig.json"
+      }
+    }
+  },
+  "rules": {
+    "no-useless-constructor": 0,
+    "prettier/prettier": [
+      "error",
+      {
+        "endOfLine": "auto"
+      }
+    ],
+    "eslint/no-useless-constructor": false,
+    "@typescript-eslint/no-useless-constructor": false,
+    "no-underscore-dangle": "off",
+    "consistent-return": "off",
+    "no-await-in-loop": "off",
+    "no-restricted-syntax": "off",
+    "@typescript-eslint/explicit-module-boundary-types": "off",
+    "import/no-extraneous-dependencies": "off",
+    "jsx-a11y/click-events-have-key-events": "off",
+    "no-use-before-define": "off",
+    "quotes": "off",
+    "import/no-named-as-default": "off",
+    "@typescript-eslint/ban-ts-comment": "off",
+    "@typescript-eslint/no-explicit-any": "off",
+    "@typescript-eslint/no-shadow": "off",
+    "@typescript-eslint/explicit-function-return-type": "off",
+    "max-classes-per-file": "off",
+    "no-extra-boolean-cast": "off",
+    "max-len": [
+      "warn",
+      {
+        "code": 140
+      }
+    ],
+    "no-shadow": "off",
+    "no-undef": "off",
+    "no-console": "off",
+    "import/prefer-default-export": "off",
+    "no-nested-ternary": "off",
+    "no-unused-vars": "off",
+    "import/no-unresolved": "off",
+    "no-debugger": "off",
+    "no-param-reassign": "off"
+  }
+}
