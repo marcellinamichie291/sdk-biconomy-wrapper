@@ -38,14 +38,12 @@ export interface BiconomyEvent {
 }
 
 export interface BiconomyConfig {
+  enableDebugMode?: boolean;
   apiKey: string;
   contractAddresses: string[];
 }
 
 export interface ISDKBiconomyWrapper {
-  get defaultSigner(): EtherSigner;
-  set defaultSigner(signer: EtherSigner);
-
   initializeBiconomy(signerOrProvider: EtherSigner): Promise<void>;
 
   canSendEIP712Transaction(address: string): boolean;
@@ -53,5 +51,5 @@ export interface ISDKBiconomyWrapper {
   sendEIP712Transaction(
     contract: Contract,
     data: string
-  ): Promise<SDKContractGenericResponse<string>>;
+  ): Promise<SDKContractGenericResponse<BiconomyEvent>>;
 }

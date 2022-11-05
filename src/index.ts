@@ -15,7 +15,6 @@ import { Biconomy } from "@biconomy/mexa";
 
 export class SDKBiconomyWrapper implements ISDKBiconomyWrapper {
   private _store: TransactionStore;
-  private _biconomyInitialized: Promise<unknown>;
   private _biconomy: Biconomy;
 
   private _defaultSigner: EtherSigner;
@@ -47,41 +46,44 @@ export class SDKBiconomyWrapper implements ISDKBiconomyWrapper {
     }
 
     try {
+      if (this._biconomy) {
+        this._biconomy.removeAllListeners();
+      }
       // @ts-ignore
       const provider = this._defaultSigner.provider?.provider;
       this._biconomy = new Biconomy(provider, {
         apiKey: this.config.apiKey,
         strictMode: true,
-        debug: true,
+        debug: this.config.enableDebugMode,
         contractAddresses: this.config.contractAddresses,
       });
-    } catch (error) {}
-
-    this._biconomyInitialized = this._biconomy.init();
-
-    this._biconomy.on("txMined", (data: BiconomyEvent) => {
-      const response = new SDKContractGenericResponse<string>({
-        isSuccess: true,
-        eventsEmitted: [],
-        data: this._getEventData(data),
-        transactionHash: data?.receipt?.transactionHash,
+      await this._biconomy.init();
+      this._biconomy.on("txMined", (data: BiconomyEvent) => {
+        const response = new SDKContractGenericResponse<BiconomyEvent>({
+          isSuccess: true,
+          eventsEmitted: [],
+          data,
+          transactionHash: data?.receipt?.transactionHash,
+        });
+        this._store.resolve<SDKContractGenericResponse<BiconomyEvent>>(
+          data.id,
+          response
+        );
       });
-      this._store.resolve<SDKContractGenericResponse<string>>(
-        data.id,
-        response
-      );
-    });
 
-    this._biconomy.on("onError", (data: Partial<BiconomyErrorEvent>) => {
-      const response = new SDKContractGenericResponse<null>({
-        isSuccess: false,
-        errorMessage: data?.error,
+      this._biconomy.on("onError", (data: Partial<BiconomyErrorEvent>) => {
+        const response = new SDKContractGenericResponse<BiconomyErrorEvent>({
+          isSuccess: false,
+          errorMessage: data?.error,
+        });
+        this._store.reject<SDKContractGenericResponse<BiconomyErrorEvent>>(
+          data.transactionId,
+          response
+        );
       });
-      this._store.reject<SDKContractGenericResponse<null>>(
-        data.transactionId,
-        response
-      );
-    });
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   public canSendEIP712Transaction(address: string) {
@@ -92,13 +94,10 @@ export class SDKBiconomyWrapper implements ISDKBiconomyWrapper {
   public async sendEIP712Transaction(
     contract: Contract,
     data: string
-  ): Promise<SDKContractGenericResponse<string>> {
-    await this._switchToBiconomyProvider(contract);
+  ): Promise<SDKContractGenericResponse<BiconomyEvent>> {
     const address = await (
       this.defaultSigner as ethers.providers.JsonRpcSigner
     ).getAddress();
-
-    console.log("selectedAddress: ", address);
     const txParams = {
       data: data,
       to: contract.address,
@@ -107,49 +106,25 @@ export class SDKBiconomyWrapper implements ISDKBiconomyWrapper {
     };
 
     try {
-      const { transactionId } = await (
-        this._biconomy.provider as unknown as ethers.providers.Web3Provider
-      ).send("eth_sendTransaction", [txParams]);
+      const provider = this._biconomy
+        .provider as unknown as ethers.providers.Web3Provider;
+      const { transactionId } = await provider.send("eth_sendTransaction", [
+        txParams,
+      ]);
       const deferredPromise = new DeferredTransaction<
-        SDKContractGenericResponse<string>
+        SDKContractGenericResponse<BiconomyEvent>
       >();
-      this._store.add<SDKContractGenericResponse<string>>(
+      this._store.add<SDKContractGenericResponse<BiconomyEvent>>(
         transactionId,
         deferredPromise
       );
       const result = await deferredPromise.promise;
-      await this._switchToDefaultProvider(contract);
-      console.log(result, deferredPromise, this, "transactionId");
       return result;
     } catch (error) {
-      await this._switchToDefaultProvider(contract);
       return new SDKContractGenericResponse<null>({
         isSuccess: false,
         error,
       });
     }
-  }
-
-  /*
-    in order to use biconomy we need to switch to biconomy singer
-  */
-  private async _switchToBiconomyProvider(contract: Contract) {
-    await this._biconomyInitialized;
-    contract = contract.connect(this._biconomy.ethersProvider.getSigner());
-  }
-
-  /*
-    after we are done with biconomy transaction 
-    change contract signer to the default
-  */
-  private async _switchToDefaultProvider(contract: Contract) {
-    contract = contract.connect(this.defaultSigner);
-  }
-
-  private _getEventData(event: BiconomyEvent): string {
-    const log = event?.receipt?.logs?.find((l) =>
-      l.data.includes("000000000000000000000000")
-    );
-    return log?.data?.replace("000000000000000000000000", "");
   }
 }

@@ -1,53 +1,62 @@
-# Overview 
+# Overview
 
-The TS/JS SDK package aims to make it easy for frontends/backends to integrate with Aut Smart Contracts. 
-The SDK abstracts the smart contract calls and brings the web2 development experience when using the Aut Protocol contracts. 
-The SDK consist of two main classes - DAOExpander and AutID. The integrator passes the signer/provider to the SDK so that it can be used with any wallet/provider. 
+It a biconomy SDK wrapper library to help with the issues coming from installing with webpack 5 polyfills.
 
-# Installation 
+[Biconomy SDK](https://docs.biconomy.io/products/enable-gasless-transactions/sdk-3)
 
-`npm i @aut-protocol/sdk`
+[Biconomy Mexa](https://www.npmjs.com/package/@biconomy/mexa)
+
+## Installation
+
+`npm i @aut-protocol/sdk-biconomy`
 
 or if you prefer using yarn
-`yarn @aut-protocol/sdk`
+`yarn @aut-protocol/sdk-biconomy`
 
-# Instantiate 
-Example using ethers wallet from mnemonic
+## Get started
+
+Example sending EIP712 transaction
+
+```ts
+export interface ISDKBiconomyWrapper {
+  initializeBiconomy(signerOrProvider: EtherSigner): Promise<void>;
+
+  canSendEIP712Transaction(address: string): boolean;
+
+  sendEIP712Transaction(
+    contract: Contract,
+    data: string
+  ): Promise<SDKContractGenericResponse<BiconomyEvent>>;
+}
 ```
- // create ethers wallet from mnemonic
-const senderWalletMnemonic = ethers.Wallet.fromMnemonic(
-  process.env.MNEMONIC,
-  "m/44'/60'/0'/0/0"
-);
-  
-  // pass provider to the constructor if only making queries
-const provider = new   ethers.providers.JsonRpcProvider(process.env.MUMBAI_RPC_PROVIDER);
-  
-// pass signer if making transactions
-const signer = senderWalletMnemonic.connect(provider);
 
-const autID = new AutID(
-  process.env.AUT_ID_ADDRESS,
-  provider // or signer
-);  
-const profile = await autID.getAutID({ tokenId: '0' });
-
-``` 
-
-Example using Metamask 
-```
-// pass provider to the constructor if only making queries
+```ts
 const provider = new ethers.providers.Web3Provider(window.ethereum);
-      
-// pass signer if making transactions
 const signer = provider.getSigner();
 
-const autID = new AutID(
-  process.env.AUT_ID_ADDRESS,
-  provider // or signer
-);
+const biconomy = new SDKBiconomyWrapper({
+      enableDebugMode: true,
+      apiKey: process.env.apiKey,
+      contractAddresses: [0x...],
+});
 
-const holderAutID = await autID.getAutID({ tokenId: "0" }); 
+await biconomy.initializeBiconomy(signer);
+
+const contract = new ethers.Contract(0x, abi, signer);
+
+let { data } = await contract.populateTransaction.method(...args);
+
+
+const response = await biconomy.sendEIP712Transaction(contract, data);
+
+const {
+  isSuccess
+  errorMessage,
+  data,
+  transactionHash,
+} = response;
 ```
 
-For more information please visit: https://docs.aut.id/v2/js-sdk/overview
+## More usage examples
+
+How to use with [AutSDK](https://github.com/Aut-Labs/sdk#using-biconomy-example)
