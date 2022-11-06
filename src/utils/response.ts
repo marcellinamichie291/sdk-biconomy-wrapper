@@ -14,7 +14,7 @@ export class SDKContractGenericResponse<T> {
     event,
     error,
     errorMessage,
-    transactionHash,
+    transactionHash
   }: Partial<SDKContractGenericResponse<T> & { error: Error; event: Event }>) {
     this.data = data;
     this.isSuccess = isSuccess || ((!!event || !!transactionHash) && !error);

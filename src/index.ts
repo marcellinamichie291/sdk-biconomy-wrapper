@@ -4,18 +4,19 @@ import {
   BiconomyErrorEvent,
   BiconomyEvent,
   EtherSigner,
-  ISDKBiconomyWrapper,
+  ISDKBiconomyWrapper
 } from "./models/IBiconomyWrapper";
 import { SDKContractGenericResponse } from "./utils/response";
 import {
   TransactionStore,
-  DeferredTransaction,
+  DeferredTransaction
 } from "./utils/transaction.store";
 import { Biconomy } from "@biconomy/mexa";
+import EventEmitter = require("events");
 
 export class SDKBiconomyWrapper implements ISDKBiconomyWrapper {
   private _store: TransactionStore;
-  private _biconomy: Biconomy;
+  private _biconomy: Biconomy & EventEmitter;
 
   private _defaultSigner: EtherSigner;
 
@@ -34,8 +35,9 @@ export class SDKBiconomyWrapper implements ISDKBiconomyWrapper {
   public async initializeBiconomy(signerOrProvider: EtherSigner) {
     this.defaultSigner = signerOrProvider;
     if ((this.defaultSigner as ethers.providers.Web3Provider)._isProvider) {
-      this.defaultSigner = (this
-        .defaultSigner as ethers.providers.Web3Provider)!.getSigner();
+      this.defaultSigner = (
+        this.defaultSigner as ethers.providers.Web3Provider
+      )?.getSigner();
     }
     if (!this.config?.contractAddresses.length) {
       throw Error("NontractAddresses was not provided for biconomy");
@@ -55,15 +57,15 @@ export class SDKBiconomyWrapper implements ISDKBiconomyWrapper {
         apiKey: this.config.apiKey,
         strictMode: true,
         debug: this.config.enableDebugMode,
-        contractAddresses: this.config.contractAddresses,
-      });
+        contractAddresses: this.config.contractAddresses
+      }) as Biconomy & EventEmitter;
       await this._biconomy.init();
       this._biconomy.on("txMined", (data: BiconomyEvent) => {
         const response = new SDKContractGenericResponse<BiconomyEvent>({
           isSuccess: true,
           eventsEmitted: [],
           data,
-          transactionHash: data?.receipt?.transactionHash,
+          transactionHash: data?.receipt?.transactionHash
         });
         this._store.resolve<SDKContractGenericResponse<BiconomyEvent>>(
           data.id,
@@ -74,7 +76,7 @@ export class SDKBiconomyWrapper implements ISDKBiconomyWrapper {
       this._biconomy.on("onError", (data: Partial<BiconomyErrorEvent>) => {
         const response = new SDKContractGenericResponse<BiconomyErrorEvent>({
           isSuccess: false,
-          errorMessage: data?.error,
+          errorMessage: data?.error
         });
         this._store.reject<SDKContractGenericResponse<BiconomyErrorEvent>>(
           data.transactionId,
@@ -102,14 +104,14 @@ export class SDKBiconomyWrapper implements ISDKBiconomyWrapper {
       data: data,
       to: contract.address,
       from: address,
-      signatureType: "EIP712_SIGN",
+      signatureType: "EIP712_SIGN"
     };
 
     try {
       const provider = this._biconomy
         .provider as unknown as ethers.providers.Web3Provider;
       const { transactionId } = await provider.send("eth_sendTransaction", [
-        txParams,
+        txParams
       ]);
       const deferredPromise = new DeferredTransaction<
         SDKContractGenericResponse<BiconomyEvent>
@@ -123,7 +125,7 @@ export class SDKBiconomyWrapper implements ISDKBiconomyWrapper {
     } catch (error) {
       return new SDKContractGenericResponse<null>({
         isSuccess: false,
-        error,
+        error
       });
     }
   }

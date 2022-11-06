@@ -1,28 +1,17 @@
 {
   "compilerOptions": {
-    "types": ["node"],
+    "baseUrl": ".",
+    "paths": {
+      "@utils/*": ["src/utils/*"],
+      "@models/*": ["src/models/*"]
+    },
     "declaration": true,
     "lib": ["es2015", "dom"],
-    "skipLibCheck": true,
-    "strict": false,
-    "typeRoots": ["types.d.ts"],
     "module": "commonjs",
-    "moduleResolution": "node",
-    "allowSyntheticDefaultImports": true,
-    "noFallthroughCasesInSwitch": true,
-    "noImplicitAny": false,
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
-    "declarationDir": "dist",
     "outDir": "dist",
-    "rootDir": "src",
-    "strictNullChecks": false,
-    "preserveConstEnums": false,
     "sourceMap": true,
-    "target": "es2016",
-    "esModuleInterop": true,
-    "isolatedModules": false
-  },
-  "transpileOnly": true,
-  "include": ["src"]
+    "skipLibCheck": true,
+    "target": "ES6",
+    "moduleResolution": "node"
+  }
 }

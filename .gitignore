@@ -16,11 +16,10 @@ results
 tmp
 
 # API keys and secrets
-#.env
+.env
 
 # Dependency directory
 node_modules
-examples
 
 # OS metadata
 .DS_Store
@@ -29,10 +28,6 @@ Thumbs.db
 # Ignore built ts files
 dist/**/*
 buildDocker.sh
-# MongoDB data and Ethereum data
-data/
-data_test/
-ethereum/
 
 # IDEs and editors
 /.idea
@@ -42,6 +37,7 @@ ethereum/
 *.launch
 .settings/
 *.sublime-workspace
+npm-debug.log
 
 # IDE - VSCode
 .vscode/*
@@ -49,13 +45,3 @@ ethereum/
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
-
-npm-debug.log
-
-# MongoDB data
-data/
-data-dev/
-
-.env
-combined.log
-.pinning.store/*
